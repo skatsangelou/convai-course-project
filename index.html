@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Book Knowledge App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      display: flex;
+      height: 100vh;
+    }
+
+    .left-panel {
+      width: 35%;
+      padding: 20px;
+      background: #f0f0f0;
+      border-right: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    .left-panel h2 {
+      margin-top: 0;
+    }
+
+    .left-panel form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .left-panel button {
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .right-panel {
+      width: 65%;
+      padding: 20px;
+      box-sizing: border-box;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-message {
+      margin: 10px 0;
+      display: flex;
+      flex-direction: column;
+      max-width: 75%;
+    }
+
+    .user {
+      align-self: flex-end;
+      text-align: right;
+    }
+
+    .ai {
+      align-self: flex-start;
+      text-align: left;
+    }
+
+    audio {
+      max-width: 100%;
+    }
+
+    .label {
+      font-size: 0.9em;
+      margin-top: 4px;
+      color: #333;
+    }
+
+    .timestamp {
+      font-size: 0.8em;
+      color: #777;
+    }
+
+    .awaiting {
+      font-style: italic;
+      color: gray;
+      margin-top: 10px;
+    }
+
+    .transcript-link {
+      font-size: 0.85em;
+      margin-top: 2px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <h2>Book Knowledge App</h2>
+    <form id="uploadForm" method="POST" enctype="multipart/form-data">
+      <label>Select a PDF:</label>
+      <input type="file" id="bookFile" name="book" accept=".pdf">
+
+      <button type="button" id="record">Record</button>
+      <button type="button" id="stop" disabled>Stop</button>
+      <span id="timer">00:00</span>
+
+      <input type="hidden" name="audio_data" id="audioData">
+      <button type="submit">SEND</button>
+    </form>
+    <p class="awaiting" id="awaitingText" style="display: none;">Awaiting response...</p>
+  </div>
+
+  <!-- RIGHT PANEL (CHAT) -->
+  <div class="right-panel" id="chatHistory">
+    {% for file in files %}
+    <div class="chat-message user">
+        <div class="label">User</div>
+      <audio controls>
+        <source src="{{ url_for('uploaded_file', filename=file) }}">
+      </audio>
+      <div class="timestamp">{{ file[:15] | replace("-", " ") }}</div>
+      <div class="transcript-link"><a href="{{ url_for('uploaded_file', filename=file + '.txt') }}">View Transcript</a></div>
+    </div>
+
+    <div class="chat-message ai">
+        <div class="label">LLM</div>
+        <audio controls>
+          <source src="{{ url_for('uploaded_file', filename=file.replace('.wav', '_response.mp3')) }}">
+        </audio>
+        <div class="timestamp">{{ file[:15] | replace("-", " ") }}</div>
+        <div class="transcript-link">
+          <a href="{{ url_for('uploaded_file', filename=file + '.txt') }}">View Transcript</a>
+        </div>
+      </div>      
+    {% endfor %}
+  </div>
+
+  <script src="/script.js"></script>
+  <script>
+    // Auto-scroll to bottom of chat
+    window.onload = function () {
+      const chat = document.getElementById("chatHistory");
+      chat.scrollTop = chat.scrollHeight;
+    };
+  </script>
+</body>
+</html>
